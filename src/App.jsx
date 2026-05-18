@@ -1,160 +1,130 @@
 import { GameHeader } from "./components/GameHeader";
 import { Card } from "./components/Card";
-import { use } from "react";
 import { useEffect, useState } from "react";
 import { WinMessage } from "./components/WinMessage";
 
 const cardValues = [
-  "🍎",
-  "🍌",
-  "🍇",
-  "🍊",
-  "🍓",
-  "🍑",
-  "🍍",
-  "🥝",
-  "🍎",
-  "🍌",
-  "🍇",
-  "🍊",
-  "🍓",
-  "🍑",
-  "🍍",
-  "🥝",
+  "🍎","🍌","🍇","🍊","🍓","🍑","🍍","🥝",
+  "🍎","🍌","🍇","🍊","🍓","🍑","🍍","🥝",
 ];
 
-
 function App() {
-
   const [cards, setCards] = useState([]);
   const [flippedCards, setFlippedCards] = useState([]);
   const [matchedCards, setMatchedCards] = useState([]);
   const [score, setScore] = useState(0);
   const [moves, setMoves] = useState(0);
   const [isLocked, setIsLocked] = useState(false);
+  const [combo, setCombo] = useState(0);
+  const [showCombo, setShowCombo] = useState(false);
 
   const shuffleArray = (array) => {
     const shuffledArray = [...array];
-    for (let i = array.length - 1; i > 0; i--) {
+    for (let i = shuffledArray.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
+      [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
     }
     return shuffledArray;
   };
 
   const initializeGame = () => {
-    //shuffle the cards
-
     const shuffled = shuffleArray(cardValues);
-
-    const finalCards = shuffled.map((value, index) => (
-      {id: index,
-        value,
-        isFlipped: false,
-        isMatched: false,
-      }
-    ));
-
+    const finalCards = shuffled.map((value, index) => ({
+      id: index, value, isFlipped: false, isMatched: false,
+    }));
     setCards(finalCards);
     setIsLocked(false);
     setMoves(0);
     setScore(0);
     setFlippedCards([]);
     setMatchedCards([]);
+    setCombo(0);
+  };
 
-  }
-
-  useEffect(() => {
-    initializeGame();
-  }, []);
+  useEffect(() => { initializeGame(); }, []);
 
   const handleCardClick = (card) => {
-      // Don't allow clicking if card is already flipped, matched
-      if (
-        card.isFlipped || 
-        card.isMatched ||
-        isLocked ||
-        flippedCards.length === 2
-      ) return;
+    if (card.isFlipped || card.isMatched || isLocked || flippedCards.length === 2) return;
 
-      // Update card flipped state
-      const newCards = cards.map((c) =>
-        c.id === card.id ? { ...c, isFlipped: true } : c
-      );
-      setCards(newCards);
+    const newCards = cards.map((c) =>
+      c.id === card.id ? { ...c, isFlipped: true } : c
+    );
+    setCards(newCards);
 
-      const newFlippedCards = [...flippedCards, card.id];
-      setFlippedCards(newFlippedCards);
+    const newFlippedCards = [...flippedCards, card.id];
+    setFlippedCards(newFlippedCards);
 
-      // Check for match if 2 cards are flipped
-      if (flippedCards.length === 1) {
+    if (flippedCards.length === 1) {
+      setIsLocked(true);
+      const firstCard = cards[flippedCards[0]];
 
-        setIsLocked(true); // Lock the game while checking for match
-
-        const firstCard = cards[flippedCards[0]];
-
-        if (firstCard.value === card.value) {
-          // Mark both cards as matched
-          setTimeout (() => {
+      if (firstCard.value === card.value) {
+        setTimeout(() => {
           setMatchedCards((prev) => [...prev, firstCard.id, card.id]);
-
-            setScore((prev) => prev + 1);
-
-          setCards((prev) => 
-              prev.map((c) => {
-                if (c.id === firstCard.id || c.id === card.id) {
-                  return { ...c, isMatched: true };
-                } else {
-                  return c;
-                }
-                })
+          setScore((prev) => prev + 1);
+          setCombo((prev) => {
+            const newCombo = prev + 1;
+            if (newCombo >= 2) {
+              setShowCombo(true);
+              setTimeout(() => setShowCombo(false), 1500);
+            }
+            return newCombo;
+          });
+          setCards((prev) =>
+            prev.map((c) =>
+              c.id === firstCard.id || c.id === card.id
+                ? { ...c, isMatched: true }
+                : c
+            )
           );
           setFlippedCards([]);
           setIsLocked(false);
         }, 500);
+      } else {
+        setCombo(0);
+        setTimeout(() => {
+          setCards((prev) =>
+            prev.map((c) =>
+              newFlippedCards.includes(c.id) || c.id === card.id
+                ? { ...c, isFlipped: false }
+                : c
+            )
+          );
+          setIsLocked(false);
+          setFlippedCards([]);
+        }, 1000);
+      }
 
-        } else{
-          // Flip both cards back after a short delay
-
-          setTimeout(() => {
-
-          const flippedBackCard = newCards.map((c) => {
-            if (newFlippedCards.includes(c.id) || c.id === card.id) {
-              return { ...c, isFlipped: false };
-
-        }else {
-          return c;
-        }
-      });
-
-      setCards(flippedBackCard);
-
-      setIsLocked(false);
-      setFlippedCards([]);
-
-    }, 1000);
+      setMoves((prev) => prev + 1);
     }
-
-    setMoves ((prev) => prev + 1);
-  }
   };
 
   const isGameComplete = matchedCards.length === cardValues.length;
-  
-  return( 
-    <div className="App">
-      <GameHeader score={score} moves={moves} onReset={initializeGame} />
 
-      {isGameComplete && <WinMessage moves={moves} /> }
+  return (
+    <div className="app">
+      <div className="ambient-bg" />
+      <div className="felt-texture" />
 
-        <div className="cards-grid">
-          {cards.map((card) => (
-            <Card card={card} onClick={handleCardClick} />
-          ))}
-        </div>  
+      <GameHeader score={score} moves={moves} onReset={initializeGame} total={cardValues.length / 2} />
 
+      {showCombo && combo >= 2 && (
+        <div className="combo-popup">
+          🔥 {combo}x Combo!
+        </div>
+      )}
+
+      {isGameComplete && <WinMessage moves={moves} score={score} onReset={initializeGame} />}
+
+      <div className="cards-grid">
+        {cards.map((card, i) => (
+          <Card key={card.id} card={card} onClick={handleCardClick} index={i} />
+        ))}
+      </div>
+
+      <div className="footer-glow" />
     </div>
   );
 }
 
-export default App
+export default App;
