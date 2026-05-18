@@ -72,6 +72,7 @@ function App() {
           setTimeout (() => {
           setMatchedCards((prev) => [...prev, firstCard.id, card.id]);
 
+            setScore((prev) => prev + 1);
 
           setCards((prev) => 
               prev.map((c) => {
@@ -105,6 +106,8 @@ function App() {
 
     }, 1000);
     }
+
+    setMoves ((prev) => prev + 1);
   }
   };
   
