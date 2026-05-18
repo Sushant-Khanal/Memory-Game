@@ -1,8 +1,14 @@
-export const WinMessage = ({ moves, score, onReset }) => {
+export const WinMessage = ({ moves, score, elapsedTime, onPlayAgain, onHome, onViewLeaderboard }) => {
+  const formatTime = (secs) => {
+    const m = Math.floor(secs / 60).toString().padStart(2, "0");
+    const s = (secs % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
+
   const getRating = () => {
     if (moves <= 16) return { stars: "★★★", label: "Legendary", color: "#ffd700" };
-    if (moves <= 22) return { stars: "★★☆", label: "Expert", color: "#c0c0c0" };
-    return { stars: "★☆☆", label: "Novice", color: "#cd7f32" };
+    if (moves <= 22) return { stars: "★★☆", label: "Expert",    color: "#c0c0c0" };
+    return            { stars: "★☆☆", label: "Novice",    color: "#cd7f32" };
   };
 
   const rating = getRating();
@@ -12,7 +18,10 @@ export const WinMessage = ({ moves, score, onReset }) => {
       <div className="win-modal">
         <div className="win-confetti">
           {["🎊","✨","🎉","💫","⭐","🎊","✨","🎉"].map((e, i) => (
-            <span key={i} className="confetti-piece" style={{ animationDelay: `${i * 150}ms`, left: `${10 + i * 11}%` }}>{e}</span>
+            <span key={i} className="confetti-piece"
+              style={{ animationDelay: `${i * 150}ms`, left: `${10 + i * 11}%` }}>
+              {e}
+            </span>
           ))}
         </div>
 
@@ -37,14 +46,29 @@ export const WinMessage = ({ moves, score, onReset }) => {
           </div>
           <div className="win-stat-divider" />
           <div className="win-stat">
-            <span className="win-stat-value">{Math.round((score / moves) * 100)}%</span>
+            <span className="win-stat-value">{formatTime(elapsedTime)}</span>
+            <span className="win-stat-label">Time</span>
+          </div>
+          <div className="win-stat-divider" />
+          <div className="win-stat">
+            <span className="win-stat-value">
+              {moves > 0 ? Math.round((score / moves) * 100) : 0}%
+            </span>
             <span className="win-stat-label">Accuracy</span>
           </div>
         </div>
 
-        <button className="play-again-btn" onClick={onReset}>
-          Play Again
-        </button>
+        <div className="win-actions">
+          <button className="win-lb-btn" onClick={onViewLeaderboard}>
+            🏅 Leaderboard
+          </button>
+          <button className="win-lb-btn" onClick={onHome}>
+            🏠 Home
+          </button>
+          <button className="play-again-btn" onClick={onPlayAgain}>
+            Play Again
+          </button>
+        </div>
       </div>
     </div>
   );
