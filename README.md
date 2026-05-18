@@ -86,7 +86,7 @@ card-royale/
 │   └── main.jsx              # React root mount
 ├── index.html
 ├── package.json
-├── vite.config.js            # TODO: confirm filename
+├── vite.config.js            
 └── README.md
 ```
 
